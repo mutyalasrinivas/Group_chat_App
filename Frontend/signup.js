@@ -18,8 +18,10 @@ async function signup(e){
            const res= await axios.post("http://localhost:2000/user/signup",obj);
    
            if(res.status===201){
+               window.alert("Successfully registered")
                window.location.href="./login.html"
            }else{
+               window.alert("failed to signup")
                throw new Error("Unable to Signup")
            }
     }catch(err){
