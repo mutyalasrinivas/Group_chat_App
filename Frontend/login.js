@@ -12,10 +12,11 @@ async function login(e){
    }
 
     const res=await axios.post('http://localhost:2000/user/login',obj)
-    if(res.status===200){
+    if(res.status===201){
         window.alert("succesfully logged in")
+        window.location.href="./chatapp.html"
     }
-    if(res.status===400){
+    else if(res.status===401){
         window.alert("Password Is Incorrect");
     }else{
         window.alert("Something went wront");

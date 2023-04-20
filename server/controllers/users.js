@@ -29,13 +29,13 @@ exports.signup=  async(req,res,next)=>{
         }
         //password
         const saltrounds= 10;
-        bcrypt.hash(password,saltrounds,async(err,hash)=>{
+        await bcrypt.hash(password,saltrounds,async(err,hash)=>{
             console.log(err);
             await User.create({
-                name,
-                email,
-                phone,
-                password
+                name:name,
+                email:email,
+                phone:phone,
+                password:hash
             })
             console.log("successfully send to Db");
             res.status(201).send("success user created")
@@ -51,8 +51,8 @@ exports.signup=  async(req,res,next)=>{
 
 
 
-function generateAccessToken(name) {
-    return jwt.sign(name, process.env.TOKEN_SECRET, { expiresIn: '1800s' });
+function generateAccessToken(id,name) {
+    return jwt.sign({userId:id,name:name}, process.env.TOKEN_SECRET);
   }
 
 
@@ -66,15 +66,15 @@ exports.login=async(req,res,next)=>{
          const user = await User.findAll({where:{email}});
          //if the user doest not exist
          if(user.length > 0){
-           bcrypt.compare(password,user[0].password,(err,result)=>{
+           await bcrypt.compare(password,user[0].password,(err,result)=>{
                 if(err){
                      throw new Error('Something went wrong')
                  }
-                if(result === true){
-                     res.status(200).json({success:true,message:"user logged in succesfully",token:generateAccessToken(user[0].name)})
+                 else if(result === true){
+                     res.status(201).json({success:true,message:"user logged in succesfully",token:generateAccessToken(user[0].id,user[0].name)})
                 }
                 else{
-                     return res.status(400).json({success:false,message:'password is incorrect'})
+                     return res.status(401).json({success:false,message:'password is incorrect'})
                 }
            })
              
