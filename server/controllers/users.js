@@ -1,5 +1,17 @@
 const User = require('../models/users');
 const bcrypt = require('bcrypt');
+const jwt = require('jsonwebtoken');
+const dotenv = require('dotenv');
+
+// get config vars
+dotenv.config();
+
+// access config var
+process.env.TOKEN_SECRET;
+
+
+require('crypto').randomBytes(64).toString('hex')
+'09f26e4cdsdff9556885fdg22hy44eeeeegbbbdfshvbshdbv56sdv1v1s6vsawahgvcyj'
 
 exports.signup=  async(req,res,next)=>{
     try{
@@ -36,3 +48,41 @@ exports.signup=  async(req,res,next)=>{
        res.status(500).send("something went wrong to post to db")
     }
 }    
+
+
+
+function generateAccessToken(name) {
+    return jwt.sign(name, process.env.TOKEN_SECRET, { expiresIn: '1800s' });
+  }
+
+
+
+exports.login=async(req,res,next)=>{
+     
+    try{
+         console.log(req.body);
+         const {email,password} = req.body;
+         //find user in db
+         const user = await User.findAll({where:{email}});
+         //if the user doest not exist
+         if(user.length > 0){
+           bcrypt.compare(password,user[0].password,(err,result)=>{
+                if(err){
+                     throw new Error('Something went wrong')
+                 }
+                if(result === true){
+                     res.status(200).json({success:true,message:"user logged in succesfully",token:generateAccessToken(user[0].name)})
+                }
+                else{
+                     return res.status(400).json({success:false,message:'password is incorrect'})
+                }
+           })
+             
+      }else{
+           return res.status(404).json({success:false,message:"user does not exit"})
+      } 
+    }catch(err){
+         console.log("login controller function error",err)
+    }
+ }
+

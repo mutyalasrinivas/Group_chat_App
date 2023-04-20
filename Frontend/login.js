@@ -12,9 +12,12 @@ async function login(e){
    }
 
     const res=await axios.post('http://localhost:2000/user/login',obj)
-    if(res.status===202){
+    if(res.status===200){
         window.alert("succesfully logged in")
+    }
+    if(res.status===400){
+        window.alert("Password Is Incorrect");
     }else{
-        window.alert("Unable to login");
+        window.alert("Something went wront");
     }
 }

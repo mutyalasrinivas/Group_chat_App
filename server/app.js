@@ -5,6 +5,7 @@ const userControllers = require('./controllers/users');
 const userRoutes = require("./routes/users")
 const userModels=require("./models/users");
 const cors= require('cors');
+const jwt = require('jsonwebtoken');
 
 const app=express();
 app.use(cors({
