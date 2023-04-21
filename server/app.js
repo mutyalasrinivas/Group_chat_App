@@ -6,6 +6,9 @@ const userRoutes = require("./routes/users")
 const userModels=require("./models/users");
 const cors= require('cors');
 const jwt = require('jsonwebtoken');
+const chats = require('./models/chat');
+const User = require('./models/users');
+const chatRoutes = require('./routes/chat');
 
 const app=express();
 app.use(cors({
@@ -13,10 +16,13 @@ app.use(cors({
 }));
 app.use(express.json());
 app.use(userRoutes);
+app.use('/users',chatRoutes);
 
+User.hasMany(chats);
+chats.belongsTo(User);
 
+sequelize.sync({force:true})
 
-sequelize.sync()
 .then(()=>{
     app.listen(port,()=>{
         console.log("server running at ",port)
