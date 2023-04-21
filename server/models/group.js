@@ -1,16 +1,17 @@
-const Sequelize=require("sequelize")
-const sequelize=require("../utils/database")
+const Sequelize = require('sequelize');
+const sequelize = require('../utils/database');
 
-const CreateGroup=sequelize.define("group",{
-    id:{
-        type:Sequelize.INTEGER,
-        primaryKey: true,
-        autoIncrement: true,
-        allowNull: false
-    },
-    name:{
-        type:Sequelize.STRING,
-        allowNull: false
-    }
-})
-module.exports=CreateGroup
+const Group = sequelize.define('group',{
+  id:{
+    type: Sequelize.INTEGER,
+    autoIncrement: true,
+    allowNull: false,
+    primaryKey: true
+  },
+  name:{
+    type:Sequelize.STRING,
+    allowNull:false
+  }
+});
+
+module.exports = Group;

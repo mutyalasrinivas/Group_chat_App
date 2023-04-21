@@ -1,24 +1,23 @@
 
-
-
-async function login(e){
-   e.preventDefault();
-   const email =document.getElementById('email').value;
-   const password =document.getElementById('password').value;
-
-   const obj={
-    email,
-    password
-   }
-
-    const res=await axios.post('http://localhost:2000/user/login',obj)
-    if(res.status===201){
-        window.alert("succesfully logged in")
-        window.location.href="./chatapp.html"
+function login(e) {
+    e.preventDefault();
+    console.log(e.target.name);
+    const form = new FormData(e.target);
+    const loginDetails = {
+        email: form.get("email"),
+        password: form.get("password")
     }
-    else if(res.status===401){
-        window.alert("Password Is Incorrect");
-    }else{
-        window.alert("Something went wront");
-    }
+    console.log(loginDetails)
+    axios.post('http://localhost:2000/users/login',loginDetails).then(response => {
+        if(response.status === 201){
+            localStorage.setItem('token', response.data.token);
+            localStorage.setItem('userDetails', JSON.stringify(response.data.user))
+            window.location.href = "./chatapp.html" // change the page on successful login
+            alert('User Sucessfully logged in')
+        } else {
+            throw new Error('Failed to login')
+        }
+    }).catch(err => {
+        document.body.innerHTML += `<div style="color:red;">${err} <div>`;
+    })
 }

@@ -1,31 +1,26 @@
-
-async function signup(e){
+async function signup(event) {
     try{
-        e.preventDefault();
-        const name=document.getElementById('name').value;
-        const email =document.getElementById('email').value;
-        const phone=document.getElementById('phone').value;
-        const password=document.getElementById('password').value;
-   
-        const obj={
-            name,
-            email,
-            phone,
-            password
+        event.preventDefault();
+        const obj = {
+            name:event.target.name.value,
+            email:event.target.email.value,
+            phone:event.target.phone.value,
+            password:event.target.password.value
         }
-           
         
-           const res= await axios.post("http://localhost:2000/user/signup",obj);
-   
-           if(res.status===201){
-               window.alert("Successfully registered")
-               window.location.href="./login.html"
-           }else{
-               window.alert("failed to signup")
-               throw new Error("Unable to Signup")
-           }
-    }catch(err){
-        console.log("signup client--->",err);
+     const response= await axios.post('http://localhost:2000/users/signup',obj)
+        if(response.status=201){
+            window.location.href="./login.html"
+            alert ("Successfull Signup")
+            console.log(response);
+        }
+        else{
+            throw new Error('failed to signup')
+        }
+
+        }
+    catch(err){
+        alert("User alredy Exist");
+        document.body.innerHTML=`<div style="color:red;">${err}</div>`;
     }
-    
-} 
+}

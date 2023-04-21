@@ -1,41 +1,82 @@
 <!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta http-equiv="X-UA-Compatible" content="IE=edge">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Chat App</title>
-</head>
-<body>
-    <div id="chatwindow">
-        <div class="row"> 
-        <div class="col-md-4" >
-          <h1>Chat App</h1>
-        
-        <div id="listofusers">
-             
-        </div>
-        </div>
-        <div id="messages">
-    
-        </div>
-        <form id="chat-form">
-            <input type="text" id="sendmsg"  placeholder="type messages here">
-            <button type="submit">Send</button>
-        </form>
-      </div>  
-    </div>
+<html>
+  <head>
+    <title>Chat Window</title>
+   <style>#chat-window {
+  border: 1px solid black;
+  border-radius: 5px;
+  margin: 20px;
+  padding: 10px;
+}
 
+#chat-messages {
+  height: 300px;
+  overflow-y: scroll;
+}
+
+#chat-form {
+  margin-top: 20px;
+}
+
+#chat-message {
+  padding: 10px;
+  font-size: 16px;
+  border: 1px solid black;
+  border-radius: 5px;
+  width: 80%;
+}
+
+#chat-form button {
+  padding: 10px;
+  background-color: #007bff;
+  color: #fff;
+  border: none;
+  border-radius: 5px;
+  margin-left: 10px;
+  cursor: pointer;
+}
+
+#chat-form button:hover {
+  background-color: #0062cc;
+}
+</style>
+  </head>
+  <body>
+    <div id="chat-window">
+      <div id="user-list">
+        <!-- Display list of users here -->
+      </div>
+      <div id="chat-messages">
+        <!-- Display chat messages here -->
+      </div>
+      <form id="chat-form">
+        <input type="text" id="chat-message" placeholder="Type your message here">
+        <button type="submit">Send</button>
+    </form>
+</div>
+
+<div id="create-group-modal" class="modal">
+  <div class="modal-content">
+    <span class="close">&times;</span>
+    <h2>Create Group</h2>
+    <form id="create-group-form">
+      <label for="group-name">Group Name:</label>
+      <input type="text" id="group-name" name="group-name"><br>
+      <label for="members">Invite Members:</label>
+      <input type="text" id="members" name="members"><br>
+      <button type="submit">Create Group</button>
+    </form>
+  </div>
+</div>
+
+<div id="groups-list">
+  <h2>My Groups</h2>
+  <ul id="groups">
+    <!-- Groups will be dynamically added here -->
+  </ul>
+</div>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/axios/0.4.1/axios.min.js"></script>
+ <script src="chat.js"></script>
  
-
-
-
-
-
-
-
-
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/axios/1.3.4/axios.min.js" integrity="sha512-LUKzDoJKOLqnxGWWIBM4lzRBlxcva2ZTztO8bTcWPmDSpkErWx0bSP4pdsjNH8kiHAUPaT06UXcb+vOEZH+HpQ==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
-     <script src="chat.js"></script>
 </body>
 </html>

@@ -1,35 +1,51 @@
+
 const express = require('express');
-const port=2000;
-const sequelize = require('./utils/database');
-const userControllers = require('./controllers/users');
-const userRoutes = require("./routes/users")
-const userModels=require("./models/users");
-const cors= require('cors');
-const jwt = require('jsonwebtoken');
-const chats = require('./models/chat');
-const User = require('./models/users');
-const chatRoutes = require('./routes/chat');
+const bodyParser = require('body-parser');
 
-const app=express();
-app.use(cors({
-    origin:" * "
-}));
-app.use(express.json());
-app.use(userRoutes);
-app.use('/users',chatRoutes);
+const sequelize=require('./utils/database');
+const User=require("./models/users");
+const chats=require('./models/chat');
+const Group = require('./models/group');
+const usergroup = require('./models/usergroup');
 
-User.hasMany(chats);
-chats.belongsTo(User);
 
-sequelize.sync()
+var cors =require('cors');
 
-.then(()=>{
-    app.listen(port,()=>{
-        console.log("server running at ",port)
-    })
-})
-.catch((err)=>{
-    console.log(err);
-})
+const app = express();
 
+app.use(cors());
+
+const userRoutes = require('./routes/users');
+const chatRoute=require("./routes/chat")
+const groupRoute = require('./routes/group');
+const groupChatRoute = require('./routes/groupchat');
+
+app.use(bodyParser.json({ extended: false }));
  
+
+
+
+app.use(userRoutes);
+ 
+app.use('/users',chatRoute)
+app.use(groupRoute);
+app.use(groupChatRoute);
+
+
+User.hasMany(chats)
+chats.belongsTo(User)
+
+User.belongsToMany(Group, {through:'usergroup',foreignKey: 'signupId'});
+Group.belongsToMany(User,{through:'usergroup',foreignKey: 'groupId'})
+
+
+
+sequelize
+.sync({alter:true})
+ 
+.then(result=>{
+   app.listen(2000);
+})
+.catch(err=>{
+    console.log(err);
+}); 

@@ -3,7 +3,6 @@ const chatMessageInput = document.getElementById('chat-message');
 const userList = document.getElementById('user-list');
 const chatMessages = document.getElementById('chat-messages');
 
-
 const removeMemberForm = document.querySelector('#remove-member-form');
 const membersInput = document.querySelector('#members');
 
@@ -12,22 +11,21 @@ const makeMemberAdminInput = document.querySelector('#memberstomakeadmin');
 
 
 function parseJwt (token) {
-  var base64Url = token.split('.')[1];
-  var base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
-  var jsonPayload = decodeURIComponent(window.atob(base64).split('').map(function(c) {
-      return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2);
-  }).join(''));
+    var base64Url = token.split('.')[1];
+    var base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
+    var jsonPayload = decodeURIComponent(window.atob(base64).split('').map(function(c) {
+        return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2);
+    }).join(''));
 
-  return JSON.parse(jsonPayload);
+    return JSON.parse(jsonPayload);
 }
 
 chatForm.addEventListener('submit',async (event) => {
 event.preventDefault();
-const token=localStorage.getItem("token");
+const token=localStorage.getItem('token');
 const tok=parseJwt(token);
 
 const grpid=localStorage.getItem('groupId')
-//console.log(grpid);
 let message ={text:chatMessageInput.value};
 let obj={
   name:tok.name,
@@ -49,13 +47,12 @@ if (localStorage.length > 11) {
   } // Get key of oldest chat message
   localStorage.removeItem(oldestKey); // Remove oldest chat message from localStorage
 }
-
-const response = await axios.post(`http://localhost:2000/user/message?groupid=${grpid}`,message,{headers: {Authorization :token}});
+const response = await axios.post(`http://localhost:2000/users/chat?groupid=${grpid}`,message,{headers: {Authorization :token}});
 chatMessageInput.value = '';
 });
 
 
-function showOnScreen(chat){
+function showNewExpenseOnScreen(chat){
 if(chat.id){
 const chatMessageElement = document.createElement('div');
 chatMessageElement.textContent = `${chat.name}: ${chat.text}`;
@@ -71,21 +68,17 @@ let Details, details;
     if(key!=='token' && key!=='groupId'){
   Details = localStorage.getItem(key);
   details = JSON.parse(Details);
-  showOnScreen(details);}
+  showNewExpenseOnScreen(details);}
   });
   getmessages()
 })
 
-
-
-
-
 async function getusers(){
 const grpid=localStorage.getItem('groupId');
-const response = await axios.get(`http://localhost:5000/groupusers/getname?groupid=${grpid}`);
+const response = await axios.get(`http://localhost:2000/groupusers/getname?groupid=${grpid}`);
 const userlist=response.data.grpusers;
 const grpName=response.data.grpusers[0].groupName;
-const groupNameElement = document.getElementById('group-name');
+const groupNameElement = document.getElementById('memberstomakeadmin');
 groupNameElement.textContent = grpName;
 userList.innerHTML='';
 userlist.forEach((user) => {
@@ -107,115 +100,115 @@ for(let i=1;i<localStorage.length;i++){
 const grpid=localStorage.getItem('groupId')
 console.log("currenttime",newKey);
 
-const response = await axios.get(`http://localhost:5000/user/getmessage?currenttime=${newKey}&groupid=${grpid}`);
+const response = await axios.get(`http://localhost:2000/users/chat?currenttime=${newKey}&groupid=${grpid}`);
 const chatHistory=response.data.message;
 // Clear previous messages
 chatMessages.innerHTML = '';
 chatHistory.forEach((chat) => {
 const chatMessageElement = document.createElement('div');
-chatMessageElement.textContent = `${chat.signupName}: ${chat.message}`;
+chatMessageElement.textContent = `${chat.userName}: ${chat.message}`;
 chatMessages.appendChild(chatMessageElement);
 });
 }
 
-// let intervalId;
+let intervalId;
 
-// function startUpdatingMessages() {
-// // Clear any previous interval
-// clearInterval(intervalId);
+function startUpdatingMessages() {
+// Clear any previous interval
+clearInterval(intervalId);
 
-// // Set new interval to call the function every 1 second
-// intervalId = setInterval(getmessages, 1000);
-// }
+// Set new interval to call the function every 1 second
+intervalId = setInterval(getmessages, 1000);
+}
 
-// startUpdatingMessages();
+startUpdatingMessages();
 
 removeMemberForm.addEventListener('submit', async(event) => {
-  event.preventDefault();
-  const grpid=localStorage.getItem('groupId');
-  let memberremoveinformation = {
-    grpId:grpid,
-    members: membersInput.value.split(',').map(name => name.trim())
-  };
-
-  if (membersInput.value) {
-    try {
-       const token= localStorage.getItem('token');
-
-       const response = await axios.post("http://localhost:5000/group/removemember",memberremoveinformation ,{headers: {Authorization :token}});
-         console.log(response) ;
-      if (response.status==201) {
-        getusers();
-        membersInput.value = '';
+    event.preventDefault();
+    const grpid=localStorage.getItem('groupId');
+    let memberremoveinformation = {
+      grpId:grpid,
+      members: membersInput.value.split(',').map(name => name.trim())
+    };
+  
+    if (membersInput.value) {
+      try {
+         const token= localStorage.getItem('token');
+  
+         const response = await axios.post("http://localhost:2000/group/removemember",memberremoveinformation ,{headers: {Authorization :token}});
+           console.log(response) ;
+        if (response.status==201) {
+          getusers();
+          membersInput.value = '';
+          alert(`${response.data.message}`)
+  
+        }
+        else if(response.status==202){
+          membersInput.value = '';
+          alert(`${response.data.message}`) }
+  
+        else if(response.status==200){
+          getusers();
+          membersInput.value = '';
         alert(`${response.data.message}`)
-
+  
+        }
+         else {
+          membersInput.value = '';
+          throw new Error(response.message);
+        }
+      } catch (error) {
+        alert(error.message);
       }
-      else if(response.status==202){
-        membersInput.value = '';
-        alert(`${response.data.message}`) }
-
-      else if(response.status==200){
-        getusers();
-        membersInput.value = '';
-      alert(`${response.data.message}`)
-
-      }
-       else {
-        membersInput.value = '';
-        throw new Error(response.message);
-      }
-    } catch (error) {
-      alert(error.message);
+    } else {
+      alert('Please fill out all fields.');
     }
-  } else {
-    alert('Please fill out all fields.');
-  }
-});
-
-
-
-makeMemberAdmin.addEventListener('submit', async(event) => {
-  event.preventDefault();
-  const grpid=localStorage.getItem('groupId');
-  let membermakeadmininformation = {
-    grpId:grpid,
-    members: makeMemberAdminInput.value.split(',').map(name => name.trim())
-  };
-
-  if (makeMemberAdminInput.value) {
-    try {
-       const token= localStorage.getItem('token');
-
-       const response = await axios.post("http://localhost:5000/group/makememberadmin",membermakeadmininformation ,{headers: {Authorization :token}});
-         console.log(response) ;
-      if (response.status==201) {
-        getusers();
-        makeMemberAdminInput.value = '';
-        alert(`${response.data.message}`)
-
-      }
-      else if(response.status==202){
-        makeMemberAdminInput.value = '';
-        alert(`${response.data.message}`) }
-
-        else if(response.status==204){
+  });
+  
+  
+  
+  makeMemberAdmin.addEventListener('submit', async(event) => {
+    event.preventDefault();
+    const grpid=localStorage.getItem('groupId');
+    let membermakeadmininformation = {
+      grpId:grpid,
+      members: makeMemberAdminInput.value.split(',').map(name => name.trim())
+    };
+  
+    if (makeMemberAdminInput.value) {
+      try {
+         const token= localStorage.getItem('token');
+  
+         const response = await axios.post("http://localhost:2000/group/makememberadmin",membermakeadmininformation ,{headers: {Authorization :token}});
+           console.log(response) ;
+        if (response.status==201) {
+          getusers();
+          makeMemberAdminInput.value = '';
+          alert(`${response.data.message}`)
+  
+        }
+        else if(response.status==202){
           makeMemberAdminInput.value = '';
           alert(`${response.data.message}`) }
-
-      else if(response.status==200){
-        getusers();
-        makeMemberAdminInput.value = '';
-      alert(`${response.data.message}`)
-
+  
+          else if(response.status==204){
+            makeMemberAdminInput.value = '';
+            alert(`${response.data.message}`) }
+  
+        else if(response.status==200){
+          getusers();
+          makeMemberAdminInput.value = '';
+        alert(`${response.data.message}`)
+  
+        }
+         else {
+          makeMemberAdminInput.value = '';
+          throw new Error(response.message);
+        }
+      } catch (error) {
+        alert(error.message);
       }
-       else {
-        makeMemberAdminInput.value = '';
-        throw new Error(response.message);
-      }
-    } catch (error) {
-      alert(error.message);
+    } else {
+      alert('Please fill out all fields');
     }
-  } else {
-    alert('Please fill out all fields');
-  }
-});
+  });

@@ -1,149 +1,170 @@
-
-
 const chatForm = document.getElementById('chat-form');
-const sendMessageInput = document.getElementById('sendmsg');
-const listofusers = document.getElementById('listofusers');
-const chatMessages = document.getElementById('messages');
+const chatMessageInput = document.getElementById('chat-message');
+const userList = document.getElementById('user-list');
+const chatMessages = document.getElementById('chat-messages');
+
+const createGroupForm = document.querySelector('#create-group-form');
+const groupNameInput = document.querySelector('#group-name');
+const membersInput = document.querySelector('#members');
+const groupsList = document.querySelector('#groups');
 
 function parseJwt (token) {
-    var base64Url = token.split('.')[1];
-    var base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
-    var jsonPayload = decodeURIComponent(window.atob(base64).split('').map(function(c) {
-        return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2);
-    }).join(''));
-    return JSON.parse(jsonPayload);
-  }
+  var base64Url = token.split('.')[1];
+  var base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
+  var jsonPayload = decodeURIComponent(window.atob(base64).split('').map(function(c) {
+      return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2);
+  }).join(''));
+  return JSON.parse(jsonPayload);
+}
 
+chatForm.addEventListener('submit',async (event) => {
+    event.preventDefault();
+    const token = localStorage.getItem('token');
+    const tok = parseJwt(token);
+    let message = {text:chatMessageInput.value};
+    let obj = { name : tok.name, text: chatMessageInput.value}
 
-  chatForm.addEventListener('submit',async(event)=>{
-     
-        event.preventDefault();
-        const token = localStorage.getItem('token');
-        const tkn = parseJwt(token);
-        let message = {text:sendMessageInput.value};
-        let obj = { name : tkn.name, text: sendMessageInput.value}
-    
-        const date = new Date().getTime(); // current time
-        localStorage.setItem(date, JSON.stringify(obj)); // storing chat msg with Time
-    
-        //remove old msg if > 10
-        let oldestKey = localStorage.key(0);
-        if(localStorage.length > 10){
-          for(let i=0;i<localStorage.length;i++){
-            if(localStorage.key(i)<oldestKey){
-              oldestKey = localStorage.key(i);
-            }
-          } //get key of lodest msg
-          localStorage.removeItem(oldestKey);//removing oldest msg 
+    const date = new Date().getTime(); // current time
+    localStorage.setItem(date, JSON.stringify(obj)); // storing chat msg with time
+
+    //remove old msg if more then 10
+    let oldestKey = localStorage.key(0);
+    if(localStorage.length > 11){
+      for(let i=0;i<localStorage.length;i++){
+        if(localStorage.key(i)<oldestKey){
+          oldestKey = localStorage.key(i);
         }
-    
-        const response = await axios.post("http://localhost:2000/users/chat",message,{headers: {Authorization :token}});
-        console.log(response);
-        sendMessageInput.value = '';
-      });
+      } //get key of lodest msg
+      localStorage.removeItem(oldestKey);//removing oldest msg 
+    }
+
+    const response = await axios.post("http://localhost:2000/users/chat",message,{headers: {Authorization :token}});
+    console.log(response);
+    chatMessageInput.value = '';
+  });
 
 
-      function showNewUserOnScreen(chat){
-        const chatMessageElement = document.createElement('div');
-        chatMessageElement.textContent = `${chat.name}: ${chat.text}`;
-        chatMessages.appendChild(chatMessageElement);
+  
+function showNewUserOnScreen(chat){
+  const chatMessageElement = document.createElement('div');
+  chatMessageElement.textContent = `${chat.name}: ${chat.text}`;
+  chatMessages.appendChild(chatMessageElement);
+}
+
+window.addEventListener('load', async () => {
+    await getusers();
+    let Details, details;
+    Object.keys(localStorage).forEach((key) => {
+      if (key !== 'token' && key !== 'groupId') {
+        Details = localStorage.getItem(key);
+        details = JSON.parse(Details);
+        console.log('details', details);
+        showNewUserOnScreen(details);
       }
-
-
-      window.addEventListener('load', async () => {
-        await getusers();
-        let Details, details;
-        Object.keys(localStorage).forEach((key) => {
-          if (key !== 'token' && key !== 'groupId') {
-            Details = localStorage.getItem(key);
-            details = JSON.parse(Details);
-            console.log('details', details);
-            showNewUserOnScreen(details);
-          }
-        });
-        
-        await getmessages();
-      });
-    
-    async function getmessages(){
- 
-        let newKey = localStorage.key(0);
-        for(let i=1;i<localStorage.length;i++){
-          if(localStorage.key(i)<newKey){
-            newKey = localStorage.key(i);
-          }
-        }
-       const response = await axios.get(`http://localhost:4000/users/chat?currenttime=${newKey}`);
-       let chatHistory = response.data.message;
-       chatMessages.innerHTML = '';
-        chatHistory.forEach((chat) => {
-          const chatMessageElement = document.createElement('div');
-          chatMessageElement.textContent = `${chat.name}: ${chat.message}`;
-          chatMessages.appendChild(chatMessageElement);
-        });
-      }
-    
-      
-      document.addEventListener("DOMContentLoaded", async () => {
-        try {
-          const token = localStorage.getItem("token");
-          const response = await axios.get("http://localhost:2000/users/chat", {
-            headers: { Authorization: token },
-          });
-      
-          if (response.status == 201) {
-            // Clear the chat box
-            document.getElementById("messages").innerHTML = "";
-      
-            // Display the messages from localStorage
-            const messages = JSON.parse(localStorage.getItem("messages")) || [];
-            messages.forEach((msg) => showOnChatBox(msg.name, msg.message));
-      
-            // Display the messages from the server
-            for (let i = 0; i < response.data.message.length; i++) {
-              showOnChatBox(
-                response.data.message[i].username,
-                response.data.message[i].message
-              );
-            }
-          }
-        } catch (err) {
-          console.log(err);
-        }
-       
-
-      setInterval(async () => {
-        try {
-            const token = localStorage.getItem("token");
-            const response = await axios.get(`http://localhost:2000/users/chat?currenttime=${newKey}`, {
-              headers: { Authorization: token },
-            });
-            if (response.status == 201) {
-                // Display the new messages
-                for (let i = 0; i < response.data.message.length; i++) {
-                  showOnChatBox(
-                    response.data.message[i].name,
-                    response.data.message[i].message
-                  );
-                }
-            }
-        } catch (err) {
-            console.log(err);
-        }
-    
-      }, 1000);
     });
+    await getGroups();
+    await getmessages();
+  });
+  
 
-    async function showOnChatBox(name, message) {
-        const parentnode = document.getElementById("messages")
-        const childnode = `<p>${name}:${message}</p>`
-        parentnode.innerHTML += childnode;
-      
-        try {
-            const messages = JSON.parse(localStorage.getItem("messages")) || [];
-            messages.push({ name, message });
-            await localStorage.setItem("messages", JSON.stringify(messages));
-        } catch (error) {
-            console.log(error);
-        }
+async function getGroups(){
+    const token=localStorage.getItem('token');
+    const response = await axios.get("http://localhost:2000/users/getgroupname",{headers: {Authorization :token}});
+    const grpdetails=response.data.groupDetails;
+    const parent=document.querySelector('#groups');
+    for(let i=0;i<grpdetails.length;i++){
+        let child=`<li onclick="insideGroup(${grpdetails[i].groupId});">${grpdetails[i].groupName}</li>`;
+
+        parent.innerHTML=parent.innerHTML+child
+  
+     }
+    }
+  
+    async function insideGroup(id){
+      try{
+         localStorage.setItem("groupId",id)
+          window.location.href="./groupChat.html"
+      }catch(err){
+          console.log("error in inside group FE",err)
       }
+  
+    }
+
+
+
+async function getusers(){
+    const response = await axios.get("http://localhost:2000/users/signup");
+    
+    const userlist = response.data.users;
+    userlist.forEach((user) => {
+      const userElement = document.createElement('div');
+      userElement.textContent = user.name+" joined";
+      userList.appendChild(userElement);
+    });
+}
+
+async function getmessages(){
+ 
+  let newKey = localStorage.key(0);
+  for(let i=1;i<localStorage.length;i++){
+    if(localStorage.key(i)<newKey){
+      newKey = localStorage.key(i);
+    }
+  }
+ const response = await axios.get(`http://localhost:2000/users/chat?currenttime=${newKey}`);
+ let chatHistory = response.data.message;
+ chatMessages.innerHTML = '';
+  chatHistory.forEach((chat) => {
+    const chatMessageElement = document.createElement('div');
+    chatMessageElement.textContent = `${chat.userName}: ${chat.message}`;
+    chatMessages.appendChild(chatMessageElement);
+  });
+}
+let intervalId;
+function startUpdatingMessages() {
+  // Clear any previous interval
+  clearInterval(intervalId);
+  // Set new interval to call the function every 1 second
+  intervalId = setInterval(getmessages, 1000);
+}
+
+startUpdatingMessages();
+
+
+createGroupForm.addEventListener('submit', async(event)=>{
+    event.preventDefault();
+    let grpinfromation = {
+      groupName: groupNameInput.value,
+      members: membersInput.value.split(',').map(email => email.trim())
+    };
+    if(groupNameInput.value && membersInput.value){
+      try{
+        const token = localStorage.getItem('token');
+        const response =await axios.post("http://localhost:2000/group/creategrp",grpinfromation,  {headers: {Authorization : token}});
+        console.log(response.data.groupid);
+        if(response.status===201){
+          //add new group to grouplist
+          const parent = document.querySelector('#groups');
+          let child = `<li onclick="insideGroup(${response.data.groupid});getGroups()">${groupNameInput.value}</li>`
+          parent.innerHTML = parent.innerHTML+ child 
+  
+          groupNameInput.value = '';
+          membersInput.value='';
+        } 
+        else if(response.status==202){
+          groupNameInput.value = '';
+          membersInput.value = '';
+         alert('You are not admin of this group,you can not add the user to the group')
+        }
+        else {
+          groupNameInput.value = '';
+          membersInput.value = '';
+          throw new Error(response.message);
+        }
+    } catch(error){
+      alert(error.message)
+    }
+  }else{
+    alert('Please fill out all fields.')
+  }
+})
