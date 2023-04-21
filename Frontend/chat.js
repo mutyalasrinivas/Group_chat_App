@@ -24,11 +24,11 @@ function parseJwt (token) {
         let obj = { name : tkn.name, text: sendMessageInput.value}
     
         const date = new Date().getTime(); // current time
-        localStorage.setItem(date, JSON.stringify(obj)); // storing chat msg with time
+        localStorage.setItem(date, JSON.stringify(obj)); // storing chat msg with Time
     
-        //remove old msg if more then 10
+        //remove old msg if > 10
         let oldestKey = localStorage.key(0);
-        if(localStorage.length > 11){
+        if(localStorage.length > 10){
           for(let i=0;i<localStorage.length;i++){
             if(localStorage.key(i)<oldestKey){
               oldestKey = localStorage.key(i);
@@ -40,6 +40,29 @@ function parseJwt (token) {
         const response = await axios.post("http://localhost:2000/users/chat",message,{headers: {Authorization :token}});
         console.log(response);
         sendMessageInput.value = '';
+      });
+
+
+      function showNewUserOnScreen(chat){
+        const chatMessageElement = document.createElement('div');
+        chatMessageElement.textContent = `${chat.name}: ${chat.text}`;
+        chatMessages.appendChild(chatMessageElement);
+      }
+
+
+      window.addEventListener('load', async () => {
+        await getusers();
+        let Details, details;
+        Object.keys(localStorage).forEach((key) => {
+          if (key !== 'token' && key !== 'groupId') {
+            Details = localStorage.getItem(key);
+            details = JSON.parse(Details);
+            console.log('details', details);
+            showNewUserOnScreen(details);
+          }
+        });
+        
+        await getmessages();
       });
     
     async function getmessages(){
