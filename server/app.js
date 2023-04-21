@@ -21,7 +21,7 @@ app.use('/users',chatRoutes);
 User.hasMany(chats);
 chats.belongsTo(User);
 
-sequelize.sync({force:true})
+sequelize.sync()
 
 .then(()=>{
     app.listen(port,()=>{

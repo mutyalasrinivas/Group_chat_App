@@ -61,4 +61,66 @@ function parseJwt (token) {
       }
     
       
-  
+      document.addEventListener("DOMContentLoaded", async () => {
+        try {
+          const token = localStorage.getItem("token");
+          const response = await axios.get("http://localhost:2000/users/chat", {
+            headers: { Authorization: token },
+          });
+      
+          if (response.status == 201) {
+            // Clear the chat box
+            document.getElementById("messages").innerHTML = "";
+      
+            // Display the messages from localStorage
+            const messages = JSON.parse(localStorage.getItem("messages")) || [];
+            messages.forEach((msg) => showOnChatBox(msg.name, msg.message));
+      
+            // Display the messages from the server
+            for (let i = 0; i < response.data.message.length; i++) {
+              showOnChatBox(
+                response.data.message[i].username,
+                response.data.message[i].message
+              );
+            }
+          }
+        } catch (err) {
+          console.log(err);
+        }
+       
+
+      setInterval(async () => {
+        try {
+            const token = localStorage.getItem("token");
+            const response = await axios.get(`http://localhost:2000/users/chat?currenttime=${newKey}`, {
+              headers: { Authorization: token },
+            });
+            if (response.status == 201) {
+                // Display the new messages
+                for (let i = 0; i < response.data.message.length; i++) {
+                  showOnChatBox(
+                    response.data.message[i].name,
+                    response.data.message[i].message
+                  );
+                }
+            }
+        } catch (err) {
+            console.log(err);
+        }
+    
+      }, 1000);
+    });
+
+    async function showOnChatBox(name, message) {
+        const parentnode = document.getElementById("messages")
+        const childnode = `<p>${name}:${message}</p>`
+        parentnode.innerHTML += childnode;
+      
+        try {
+            const messages = JSON.parse(localStorage.getItem("messages")) || [];
+            messages.push({ name, message });
+            await localStorage.setItem("messages", JSON.stringify(messages));
+        } catch (error) {
+            console.log(error);
+        }
+      }
