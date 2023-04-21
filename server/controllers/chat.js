@@ -21,3 +21,19 @@ exports.postChat = async(req,res,next)=>{
         res.status(500).json({success:false,message: err})
     }
 }
+
+exports.getchat = async (req, res, next) => {
+    try {
+    const currentTime = req.query.currenttime;
+    console.log(currentTime)
+    const messages = await Chat.findAll({
+      where:{
+        time:{ [Op.gt] : currentTime }
+      }
+    });
+    res.status(201).json({ success: true, message: messages });
+  }
+    catch (err) {
+        res.status(500).json({ message: err, success: false })
+    }
+  }
